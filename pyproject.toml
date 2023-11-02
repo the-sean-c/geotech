@@ -1,0 +1,15 @@
+[project]
+name = "geotech"
+version = "0.1.0"
+description = "A suite of tools for geotechnical engineering."
+authors = [
+    {name = "Sean Daly", email = "the_sean_c@fastmail.com"},
+]
+dependencies = []
+requires-python = ">=3.10"
+readme = "README.md"
+license = {text = "GNU AGPLv3"}
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
