@@ -1,75 +1,13 @@
+import logging
 from abc import ABC, abstractmethod
 
 import numpy as np
 
+from geotech.config import Config
+from geotech.distributions import Constant, ParameterDistribution
 
-class ParameterDistribution(ABC):
-    """Abstract class for parameter distributions.
-
-    Soil and water parameters can be defined by an arbitrary distribution. Desired
-    distributions should be implemented as subclasses of this class.
-    """
-
-    @abstractmethod
-    def __init__(self):
-        """Must initialize the distribution parameters"""
-        pass
-
-    @abstractmethod
-    def sample(self):
-        """Must return a sample from the distribution"""
-        pass
-
-    @abstractmethod
-    def __repr__(self) -> str:
-        pass
-
-
-class Uniform(ParameterDistribution):
-    def __init__(self, lower, upper):
-        self.lower = lower
-        self.upper = upper
-
-    def sample(self):
-        return np.random.uniform(self.lower, self.upper)
-
-    def __repr__(self) -> str:
-        return f"{self.lower} to {self.upper}"
-
-
-class Normal(ParameterDistribution):
-    def __init__(self, mean, std):
-        self.mean = mean
-        self.std = std
-
-    def sample(self):
-        return np.random.normal(self.mean, self.std)
-
-    def __repr__(self) -> str:
-        return f"{self.mean} +- {self.std}"
-
-
-class LogNormal(ParameterDistribution):
-    def __init__(self, mean, std):
-        self.mean = mean
-        self.std = std
-
-    def sample(self):
-        return np.random.lognormal(self.mean, self.std)
-
-    def __repr__(self) -> str:
-        return f"{self.mean} */ {self.std}"
-
-
-class Constant(ParameterDistribution):
-    def __init__(self, value):
-        self.value = value
-
-    def sample(self):
-        return self.value
-
-    def __repr__(self) -> str:
-        return f"{self.value}"
+logger = logging.getLogger(__name__)
+config = Config()
 
 
 class PoreWaterPressure(ABC):
@@ -145,7 +83,8 @@ class MeasuredPoreWaterPressure(PoreWaterPressure):
         return self.groundwater_elevation.sample() + self.gradient.sample()
 
     def __repr__(self):
-        return f"Measured PWP"
+        # TODO, format the measurements nicely.
+        raise NotImplementedError
 
 
 class SoilLayer:
@@ -189,8 +128,28 @@ class SoilLayer:
 class SoilProfile:
     def __init__(
         self,
-        layers: list[float, SoilLayer],
+        layers: list[float, SoilLayer] = [],
         pore_water_pressure: PoreWaterPressure = Constant(0.0),
     ):
-        self.layers = []
-        self.porewater_pressure = None
+        self.layers = layers
+        self.porewater_pressure = pore_water_pressure
+
+    def add_layer(self, layer: SoilLayer):
+        self.layers.append(layer)
+        self.layers.sort(key=lambda x: x.elevation_top, reverse=True)
+
+    def get_samples(self):
+        samples = {}
+        for layer in self.layers:
+            samples[layer.name] = {
+                "elevation_top": layer.elevation_top.sample(),
+                "elevation_bottom": layer.elevation_bottom.sample(),
+                "wet_density": layer.wet_density.sample(),
+                "dry_density": layer.dry_density.sample(),
+                "cohesion": layer.cohesion.sample(),
+                "angle_of_internal_friction": layer.angle_of_internal_friction.sample(),
+                "compression_index": layer.compression_index.sample(),
+                "recompression_index": layer.recompression_index.sample(),
+                "initial_void_ratio": layer.initial_void_ratio.sample(),
+            }
+        return samples
