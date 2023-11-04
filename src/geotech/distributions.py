@@ -80,3 +80,14 @@ class Constant(ParameterDistribution):
 
     def __repr__(self) -> str:
         return f"{self.value}"
+
+
+class Bootstrap(ParameterDistribution):
+    def __init__(self, samples):
+        raise NotImplementedError
+
+    def sample(self):
+        raise NotImplementedError
+
+    def __repr__(self) -> str:
+        raise NotImplementedError

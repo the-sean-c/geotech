@@ -25,11 +25,28 @@ class Load(ABC):
 
 
 class PointLoad(Load):
-    def __init__(self, load, x_loc, y_loc):
-        self.load = load
+    def __init__(
+        self,
+        load: ParameterDistribution,
+        elevation_load: ParameterDistribution,
+        x_load: ParameterDistribution,
+        y_load: ParameterDistribution,
+    ):
+        self.load = load  # kN
+        self.elevation_load = elevation_load  # m
+        self.x_load = x_load  # m
+        self.y_load = y_load  # m
 
-    def sample(self, x: float, y: float, elevations: float):
-        return self.load
+    def sample(self, x: float, y: float, elevations: np.array):
+        x_load = self.x_load.sample()
+        y_load = self.y_load.sample()
+        elevation_load = self.elevation_load.sample()
+        r = np.sqrt((x - x_load) ** 2 + (y - y_load) ** 2)
+        R = np.sqrt(r**2 + elevations.T**2)
+        Q = self.load.sample()
+        z = elevation_load - elevations.T
+
+        return (3 * Q) / (2 * np.pi * z**2) / (1 + (r / z) ** 2) ** (5 / 2)
 
     def __repr__(self) -> str:
         return f"{self.load}"
