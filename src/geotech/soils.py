@@ -50,6 +50,10 @@ class WaterTable(PoreWaterPressure):
         self.water_table_elevation = water_table_elevation  # m
         self.gradient = gradient  # m/m
 
+        for attr_name, attr_value in self.__dict__.items():
+            if not isinstance(attr_value, ParameterDistribution):
+                attr_value = Constant(attr_value)
+
     def sample(self, elevation):
         water_table_elevation = self.water_table_elevation.sample()
         hydrostatic = (water_table_elevation - elevation) * self.water_unit_weight
@@ -112,6 +116,10 @@ class SoilLayer:
         self.recompression_index = recompression_index  # m2/kN
         self.initial_void_ratio = initial_void_ratio  # unitless
 
+        for attr_name, attr_value in self.__dict__.items():
+            if not isinstance(attr_value, ParameterDistribution):
+                attr_value = Constant(attr_value)
+
     def is_wet(self, groundwater_depth):
         return self.elevation_top >= groundwater_depth
 
@@ -133,6 +141,9 @@ class SoilProfile:
     ):
         self.layers = layers
         self.porewater_pressure = pore_water_pressure
+
+        if not isinstance(self.porewater_pressure, ParameterDistribution):
+            self.porewater_pressure = Constant(self.porewater_pressure)
 
     def add_layer(self, layer: SoilLayer):
         self.layers.append(layer)

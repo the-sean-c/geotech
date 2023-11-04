@@ -16,7 +16,7 @@ class Load(ABC):
         pass
 
     @abstractmethod
-    def sample(self, x: float, y: float, elevations: float):
+    def sample_vertical_pressure(self, x: float, y: float, elevations: float):
         pass
 
     @abstractmethod
@@ -37,7 +37,18 @@ class PointLoad(Load):
         self.x_load = x_load  # m
         self.y_load = y_load  # m
 
-    def sample(self, x: float, y: float, elevations: np.array):
+        for attr_name, attr_value in self.__dict__.items():
+            if not isinstance(attr_value, ParameterDistribution):
+                attr_value = Constant(attr_value)
+
+    def sample_vertical_pressure(
+        self, x: float, y: float, elevations: np.array
+    ) -> np.array:
+        """Calculate the vertical pressure at a given point per Boussinesq
+
+        Returns:
+            vertical pressure in kPa
+        """
         x_load = self.x_load.sample()
         y_load = self.y_load.sample()
         elevation_load = self.elevation_load.sample()

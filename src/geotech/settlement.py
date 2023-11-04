@@ -3,13 +3,14 @@ import logging
 import numpy as np
 
 from geotech.config import Config
-from geotech.soil import SoilProfile
+from geotech.loads import Load
+from geotech.soils import SoilProfile
 
 logger = logging.getLogger(__name__)
 config = Config()
 
 
-def calculate_settlements(profile: SoilProfile, load: float, time: float) -> np.ndarray:
+def calculate_settlements(profile: SoilProfile, load: Load, time: float) -> np.ndarray:
     """Calculate the settlements for a soil profile.
 
     Parameters
