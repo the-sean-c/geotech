@@ -18,16 +18,27 @@ class ParameterDistribution(ABC):
 
     @abstractmethod
     def __init__(self):
-        """Initialize the distribution parameters"""
-        pass
+        """Initialize the distribution parameters
 
-    @abstractmethod
-    def sample(self):
+        Randomized sampling should be done here to maintain consistency between
+        different elevations and locations in the same iteration.
+        """
+        self.sample_values = None
+
+    def sample(
+        self,
+        # northings: float | np.array = 0.0,
+        # eastings: float | np.array = 0.0,
+        elevations: float | np.array = 0.0,
+    ):
         """Return a sample from the distribution.
 
-        The sample should be an array of size config.iterations.
+        # TODO: Add support for sampling at different locations.
         """
-        pass
+        if isinstance(elevations, (int, float)):
+            elevations = [elevations]
+
+        return np.broadcast_to(self.sample_values)
 
     @abstractmethod
     def __repr__(self) -> str:
@@ -38,9 +49,9 @@ class Uniform(ParameterDistribution):
     def __init__(self, lower, upper):
         self.lower = lower
         self.upper = upper
-
-    def sample(self):
-        return config.rng.uniform(self.lower, self.upper, size=config.iterations)
+        self.sample_values = config.rng.uniform(
+            self.lower, self.upper, size=config.iterations
+        )
 
     def __repr__(self) -> str:
         return f"{self.lower} to {self.upper}"
@@ -50,9 +61,9 @@ class Normal(ParameterDistribution):
     def __init__(self, mean, std):
         self.mean = mean
         self.std = std
-
-    def sample(self):
-        return config.rng.normal(self.mean, self.std, size=config.iterations)
+        self.sample_values = config.rng.normal(
+            self.mean, self.std, size=config.iterations
+        )
 
     def __repr__(self) -> str:
         return f"{self.mean} +- {self.std}"
@@ -62,9 +73,9 @@ class LogNormal(ParameterDistribution):
     def __init__(self, underlying_mean, underlying_std):
         self.mu = underlying_mean  # Of underlying normal distribution
         self.sigma = underlying_std  # Of underlying normal distribution
-
-    def sample(self):
-        return config.rng.lognormal(self.mu, self.sigma, size=config.iterations)
+        self.sample_values = config.rng.lognormal(
+            self.mu, self.sigma, size=config.iterations
+        )
 
     def __repr__(self) -> str:
         # TODO, figure out a way to do this so it looks right.
@@ -74,9 +85,7 @@ class LogNormal(ParameterDistribution):
 class Constant(ParameterDistribution):
     def __init__(self, value):
         self.value = value
-
-    def sample(self):
-        return np.ones(config.iterations) * self.value
+        self.sample_values = np.ones(config.iterations) * self.value
 
     def __repr__(self) -> str:
         return f"{self.value}"
@@ -84,9 +93,6 @@ class Constant(ParameterDistribution):
 
 class Bootstrap(ParameterDistribution):
     def __init__(self, samples):
-        raise NotImplementedError
-
-    def sample(self):
         raise NotImplementedError
 
     def __repr__(self) -> str:

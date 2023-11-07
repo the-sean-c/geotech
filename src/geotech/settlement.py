@@ -27,7 +27,8 @@ def calculate_settlements(profile: SoilProfile, load: Load, time: float) -> np.n
     settlements : np.ndarray
         The settlements for the soil profile.
     """
-    settlements = np.zeros(config.iterations)
-    for layer in profile.layers:
-        settlements += layer.calculate_settlements(load, time)
-    return settlements
+    # settlements = np.zeros(config.iterations)
+    # for layer in profile.layers:
+    #     settlements += layer.calculate_settlements(load, time)
+    # return settlements
+    pass
