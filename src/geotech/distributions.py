@@ -27,18 +27,19 @@ class ParameterDistribution(ABC):
 
     def sample(
         self,
-        # northings: float | np.array = 0.0,
-        # eastings: float | np.array = 0.0,
-        elevations: float | np.array = 0.0,
+        northings: float | list[float] = 0.0,
+        eastings: float | list[float] = 0.0,
+        elevations: float | list[float] = 0.0,
     ):
-        """Return a sample from the distribution.
+        """Return a sample from the distribution."""
+        for param in [northings, eastings, elevations]:
+            if isinstance(param, (int, float)):
+                param = [param]
 
-        # TODO: Add support for sampling at different locations.
-        """
-        if isinstance(elevations, (int, float)):
-            elevations = [elevations]
-
-        return np.broadcast_to(self.sample_values)
+        return np.broadcast_to(
+            self.sample_values,
+            (len(northings), len(eastings), len(elevations), config.iterations),
+        ).copy()
 
     @abstractmethod
     def __repr__(self) -> str:
